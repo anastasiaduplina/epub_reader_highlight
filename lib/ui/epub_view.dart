@@ -5,6 +5,8 @@ import 'dart:typed_data';
 
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:epub_reader_highlight/data/models/selected_text_model.dart';
+import 'package:epub_reader_highlight/ui/scaffold_messeger_ext.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:html/parser.dart' as html_parser;
@@ -302,6 +304,7 @@ class _EpubViewState extends State<EpubView> {
     return posIndex - _chapterIndexes[index];
   }
 
+
   int _getAbsParagraphIndexBy({
     required int positionIndex,
     double? trailingEdge,
@@ -352,6 +355,8 @@ class _EpubViewState extends State<EpubView> {
     final paragraph = paragraphs[index];
     final hasText = paragraph.element.text.isNotEmpty;
     final hasImage = paragraph.element.outerHtml.contains('<img');
+
+
 
     List<Widget> toolbarSelectionActions(
         EditableTextState state, List<Color> options) {
@@ -527,7 +532,7 @@ class _EpubViewState extends State<EpubView> {
                       );
                       return SelectableText.rich(
                         TextSpan(
-                          children: [htmlText.text],
+                          children: createTextSpans(htmlText.text.toPlainText(), context),
                           style: options.textStyle,
                         ),
                         contextMenuBuilder: (_, EditableTextState state) {
@@ -810,5 +815,21 @@ class _EpubViewState extends State<EpubView> {
     return tag != null
         ? '$before<$tag>$selected</$tag>$after'
         : '$before$selected$after';
+  }
+
+  static List<TextSpan> createTextSpans(String text, BuildContext context) {
+    final messenger = ScaffoldMessenger.of(context);
+    final arrayStrings = text.split(" ");
+    final List<TextSpan> arrayOfTextSpan = [];
+    for (int index = 0; index < arrayStrings.length; index++) {
+      final text = "${arrayStrings[index]} ";
+      final span = TextSpan(
+          text: text,
+          style: TextStyle(color: Colors.black),
+          recognizer: LongPressGestureRecognizer()
+            ..onLongPress = () => messenger.toast("The word touched is $text"));
+      arrayOfTextSpan.add(span);
+    }
+    return arrayOfTextSpan;
   }
 }
